@@ -129,13 +129,17 @@ gp_surface(
 | --- | --- |
 | ![Violin distribution](gallery/deep_potential/03_violin_distribution_lab.png) | ![Waterfall ridgelines](gallery/deep_potential/05_waterfall_ridgeline_scans.png) |
 
+| Density ridgelines | Candlestick chart |
+| --- | --- |
+| ![Density ridgelines](gallery/deep_potential/07_density_ridgeline_bands.png) | ![Candlestick chart](gallery/deep_potential/08_finance_candlestick_ma.png) |
+
 | 4D surface | 4D helix |
 | --- | --- |
 | ![4D surface](gallery/deep_potential/00_readme_hero_surface4d.png) | ![4D helix](gallery/deep_potential/06_points4d_signal_helix.png) |
 
-| 3D categorical bars |
-| --- |
-| ![3D categorical bars](gallery/deep_potential/07_boxes3d_dashboard_bars.png) |
+| 3D zerrorfill ribbons | 3D boxes with pm3d lighting |
+| --- | --- |
+| ![3D zerrorfill ribbons](gallery/deep_potential/09_zerrorfill_ribbon_fences.png) | ![3D boxes with pm3d lighting](gallery/deep_potential/10_boxes3d_pm3d_lighting.png) |
 
 ## Main Functions
 

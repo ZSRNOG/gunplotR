@@ -299,36 +299,219 @@ gp_points4d(
 )
 rendered("06", "4D signal helix", out)
 
-# 8. 3D bars: categorical matrix, consistent colors, walls and lighting.
-zbar <- outer(1:6, 1:5, function(y, x) round(2 + y * x + 2.4 * sin(x + y), 1))
-rownames(zbar) <- paste0("R", 1:nrow(zbar))
-colnames(zbar) <- paste0("C", 1:ncol(zbar))
-bar_cols <- matrix(rep(c("#e76f51", "#f4a261", "#2a9d8f", "#457b9d",
-                         "#8e44ad"), each = nrow(zbar)),
-                   nrow = nrow(zbar))
-out <- png_path("07_boxes3d_dashboard_bars")
-gp_bar3d(
-  zbar,
-  color = bar_cols,
-  color_mode = "rgb_variable",
-  fill = "solid 0.86 border lc black",
-  depth = 0.6,
-  depthorder = TRUE,
-  lighting = TRUE,
-  walls = "x0 y0 z0",
-  pm3d_border = "lc black",
-  main = "3D categorical bars",
-  xlab = "column",
-  ylab = "row",
-  zlab = "value",
-  view = c(62, 36, 1, 1.06),
-  extra = gp_options(grid = FALSE,
-                     raw = "set tics out"),
+# 8. Advanced 2D: density ridgelines with transparent filledcurves.
+ridge_groups <- c("control", "low dose", "mid dose", "high dose", "recovery")
+xr <- seq(-3.5, 4.7, length.out = 360)
+ridge_rows <- list()
+for (i in seq_along(ridge_groups)) {
+  shift <- -0.9 + 0.42 * i
+  density <- 0.95 * dnorm(xr, shift, 0.48 + 0.035 * i) +
+    0.42 * dnorm(xr, shift + 1.05, 0.28 + 0.02 * i)
+  density <- density / max(density) * 0.78
+  ridge_rows[[i]] <- data.frame(x = xr, base = i, top = i + density,
+                                group = i)
+}
+ridge <- do.call(rbind, ridge_rows)
+ridge_file <- write_plot_table(ridge, workdir = tempdir(),
+                               prefix = "gunplotR-ridge-")
+ridge_cols <- c("#264653", "#2a9d8f", "#e9c46a", "#f4a261", "#e76f51")
+ridge_terms <- character()
+for (i in seq_along(ridge_groups)) {
+  select <- paste0("(($4==", i, ")?$1:1/0)")
+  ridge_terms <- c(
+    ridge_terms,
+    paste(gp_quote(ridge_file), "using", paste0(select, ":2:3"),
+          "with filledcurves fc rgb", gp_quote(ridge_cols[i]),
+          "fs transparent solid 0.46 noborder notitle"),
+    paste(gp_quote(ridge_file), "using", paste0(select, ":3"),
+          "with lines lc rgb", gp_quote(ridge_cols[i]),
+          "lw 2.2 title", gp_quote(ridge_groups[i]))
+  )
+}
+out <- png_path("07_density_ridgeline_bands")
+gp_render(
+  plot_body = paste("plot", paste(ridge_terms, collapse = ", \\\n     ")),
+  setup = c(
+    gp_setup(main = "Density ridgelines",
+             subtitle = "transparent filledcurves with group-specific peaks",
+             xlab = "standardized measurement", ylab = NULL,
+             grid = FALSE, key = TRUE,
+             xrange = c(min(xr), max(xr)),
+             yrange = c(0.65, length(ridge_groups) + 1.05),
+             theme = gp_theme(legend_position = "outside right top",
+                              legend_box = FALSE)),
+    paste0("set ytics (",
+           paste(paste(gp_quote(ridge_groups), seq_along(ridge_groups)),
+                 collapse = ", "), ")"),
+    "set border 3 lw 1.25 lc rgb '#444444'",
+    "set tics out nomirror",
+    "set grid xtics lc rgb '#e9ecef'",
+    "set style fill transparent solid 0.46 noborder"
+  ),
   terminal = term_card,
   output = out,
   preview = FALSE
 )
-rendered("07", "3D categorical bars", out)
+unlink(ridge_file)
+rendered("07", "Density ridgeline bands", out)
+
+# 9. Advanced 2D: candlesticks with split colors, moving average, and band.
+days <- seq_len(80)
+close <- 102 + cumsum(rnorm(length(days), 0.08, 1.15)) +
+  4 * sin(days / 9)
+open <- c(close[1] - 0.8, close[-length(close)] +
+            rnorm(length(days) - 1L, 0, 0.75))
+high <- pmax(open, close) + runif(length(days), 0.35, 1.8)
+low <- pmin(open, close) - runif(length(days), 0.35, 1.8)
+ma <- as.numeric(stats::filter(close, rep(1 / 10, 10), sides = 1))
+ma <- approx(days[!is.na(ma)], ma[!is.na(ma)], days, rule = 2)$y
+band <- data.frame(day = days, upper = ma + 2.4, lower = ma - 2.4)
+ohlc_up <- data.frame(day = days, open = ifelse(close >= open, open, NA),
+                      low = ifelse(close >= open, low, NA),
+                      high = ifelse(close >= open, high, NA),
+                      close = ifelse(close >= open, close, NA))
+ohlc_down <- data.frame(day = days, open = ifelse(close < open, open, NA),
+                        low = ifelse(close < open, low, NA),
+                        high = ifelse(close < open, high, NA),
+                        close = ifelse(close < open, close, NA))
+ma_data <- data.frame(day = days, ma = ma)
+out <- png_path("08_finance_candlestick_ma")
+gp_multi(
+  gp_layer(data = band, using = "1:2:3", style = "filledcurves",
+           title = "MA band", fill = "transparent solid 0.2 noborder",
+           fill_col = "#8ecae6"),
+  gp_layer(data = ohlc_up, using = "1:2:3:4:5", style = "candlesticks",
+           title = "up day", col = "#2a9d8f",
+           fill = "solid 0.65 border"),
+  gp_layer(data = ohlc_down, using = "1:2:3:4:5", style = "candlesticks",
+           title = "down day", col = "#e76f51",
+           fill = "solid 0.65 border"),
+  gp_layer(data = ma_data, using = "1:2", style = "lines",
+           title = "MA(10)", col = "#1d3557", lwd = 2.6),
+  main = "Candlestick chart",
+  subtitle = "finance style, split colors, moving average, and band",
+  xlab = "trading day",
+  ylab = "price",
+  settings = gp_options(
+    border = "3 lw 1.25 lc rgb '#444444'",
+    grid = "ytics lc rgb '#e6e6e6'",
+    key = "outside right top",
+    boxwidth = 0.62,
+    raw = c("set tics out nomirror",
+            "set style fill solid 0.65 border")
+  ),
+  terminal = term_card,
+  output = out,
+  preview = FALSE
+)
+rendered("08", "Candlestick chart with moving average", out)
+
+# 10. 3D zerrorfill: transparent ribbons on a log-scaled z axis.
+xze <- seq(1, 620, length.out = 150)
+zerr_rows <- list()
+for (k in 1:5) {
+  center <- 930 * (0.42 + 0.11 * k) * exp(-xze / (120 + 26 * k)) *
+    (1 + 0.14 * cos(xze / 38 + k / 2)) + 2.5 * k
+  spread <- center * (0.13 + 0.025 * k) *
+    (1 + 0.25 * sin(xze / 55 + k))
+  zerr_rows[[k]] <- data.frame(
+    x = xze,
+    y = k,
+    z = center,
+    zlow = pmax(1, center - abs(spread)),
+    zhigh = center + abs(spread),
+    group = k
+  )
+}
+zerr <- do.call(rbind, zerr_rows)
+zerr_cols <- c("#1b9aaa", "#5a4fcf", "#d81b60", "#f2a900", "#2d6a4f")
+zerr_files <- character()
+zerr_terms <- vapply(seq_along(zerr_cols), function(i) {
+  chunk <- zerr[zerr$group == i, c("x", "y", "z", "zlow", "zhigh")]
+  file <- write_plot_table(chunk, workdir = tempdir(),
+                           prefix = paste0("gunplotR-zerrorfill-", i, "-"))
+  zerr_files <<- c(zerr_files, file)
+  paste(gp_quote(file), "using 1:2:3:4:5 title", gp_quote(paste("k =", i)),
+        "with zerrorfill lc rgb", gp_quote(zerr_cols[i]),
+        "fs transparent solid 0.34")
+}, character(1))
+out <- png_path("09_zerrorfill_ribbon_fences")
+gp_render(
+  plot_body = paste("splot", paste(zerr_terms, collapse = ", \\\n     ")),
+  setup = gp_3d_setup(
+    main = "3D zerrorfill ribbons",
+    subtitle = "log-scaled z axis with depth-sorted transparent fills",
+    xlab = "x", ylab = "series", zlab = "value",
+    xrange = c(0, 640),
+    yrange = c(0.6, 5.6),
+    zrange = c(1, 1200),
+    view = c(68, 28, 1, 1.08),
+    grid = FALSE,
+    key = TRUE,
+    pm3d = "depthorder",
+    extra = gp_options(
+      zlog = TRUE,
+      zformat = "10^{%T}",
+      ytics = setNames(seq_len(5), paste0("k", 1:5)),
+      border = "4095 lw 1 lc rgb '#555555'",
+      colorbox = FALSE,
+      raw = c("set key inside top right box opaque",
+              "set tics out nomirror",
+              "set xyplane at 1")
+    )
+  ),
+  terminal = term_card,
+  output = out,
+  preview = FALSE
+)
+unlink(zerr_files)
+rendered("09", "3D zerrorfill ribbon fences", out)
+
+# 11. 3D boxes: pm3d palette, depth sorting, walls, and lighting.
+xb <- seq(0.5, 8.5, length.out = 9)
+yb <- seq(0.5, 6.5, length.out = 7)
+zbox <- outer(yb, xb, function(y, x) {
+  4.6 + 2.9 * exp(-((x - 5.2)^2 + (y - 3.5)^2) / 7) +
+    1.6 * sin(1.1 * x) * cos(0.8 * y) + 0.28 * x + 0.18 * y
+})
+zbox[zbox < 0.4] <- 0.4
+out <- png_path("10_boxes3d_pm3d_lighting")
+gp_bar3d(
+  zbox,
+  x = xb,
+  y = yb,
+  color = zbox,
+  color_mode = "palette",
+  fill = "solid 0.95 border lc rgb '#222222'",
+  width = 0.58,
+  depth = 0.5,
+  xyplane = 0,
+  depthorder = TRUE,
+  lighting = TRUE,
+  walls = TRUE,
+  pm3d_border = "lc rgb '#222222'",
+  palette = "viridis",
+  cblabel = "height",
+  colorbox = "vertical user origin .88,.27 size .025,.46",
+  main = "3D boxes with pm3d lighting",
+  subtitle = "numeric grid rendered with boxes3d-style depth sorting",
+  xlab = "x",
+  ylab = "y",
+  zlab = "height",
+  view = c(64, 34, 1, 1.08),
+  extra = gp_options(grid = FALSE,
+                     raw = c("set tics out nomirror",
+                             "set border 4095 lw 1 lc rgb '#555555'",
+                             "set xrange [0:9]",
+                             "set yrange [0:7]",
+                             "set zrange [0:12]",
+                             "set lmargin 7",
+                             "set rmargin 12")),
+  terminal = term_card,
+  output = out,
+  preview = FALSE
+)
+rendered("10", "3D boxes with pm3d lighting", out)
 
 manifest <- do.call(rbind, record)
 utils::write.csv(manifest, file.path(outdir, "_manifest.csv"), row.names = FALSE)
