@@ -21,8 +21,8 @@ if ($LASTEXITCODE -ne 0) {
 
 & $git status --short
 
-$remote = (& $git remote get-url origin 2>$null)
-if (-not $remote) {
+$remotes = @(& $git remote 2>$null)
+if ($remotes -notcontains "origin") {
   & $gh repo create zsrnog/gunplotR --public --source . --remote origin --push
 } else {
   & $git push -u origin main
