@@ -4,3 +4,4 @@
 ^gallery$
 ^gunplotR_.*[.]tar[.]gz$
 ^.*[.]Rcheck$
+^upload_to_github[.]ps1$
