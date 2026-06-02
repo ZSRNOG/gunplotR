@@ -792,7 +792,9 @@ gp_boxes3d <- function(x,
 #' @param height Numeric matrix, vector, or data frame. A data frame must have
 #'   x, y, and height columns; an optional fourth column is used for color.
 #' @param x,y Optional x/y positions or category labels for matrix input.
-#' @param color Optional color values for palette coloring.
+#' @param color Optional color values for palette coloring. These values are
+#'   used only for color; bar width and depth are controlled by `width` and
+#'   `depth`.
 #' @param width Optional bar width passed to `set boxwidth`.
 #' @param depth Optional bar depth passed to `set boxdepth`.
 #' @param fill Fill opacity or raw fill style.
@@ -888,7 +890,7 @@ gp_bar3d <- function(height,
   )
   style <- gp_style(
     "boxes",
-    using = if (has_color) "1:2:3:4" else "1:2:3",
+    using = bar3d_using_spec(has_color, width = width, depth = depth),
     title = legend,
     fill = fill,
     palette = has_color && color_mode == "palette",
@@ -1575,6 +1577,24 @@ rgb_variable_values <- function(color) {
   }
   rgb <- grDevices::col2rgb(color)
   as.integer(rgb[1L, ] * 65536L + rgb[2L, ] * 256L + rgb[3L, ])
+}
+
+bar3d_using_spec <- function(has_color, width, depth) {
+  if (!isTRUE(has_color)) {
+    return("1:2:3")
+  }
+  if (!is.numeric(width) || length(width) != 1L || is.na(width)) {
+    stop("`width` must be a single numeric value when `color` is used.",
+         call. = FALSE)
+  }
+  if (is.null(depth)) {
+    depth <- width
+  }
+  if (!is.numeric(depth) || length(depth) != 1L || is.na(depth)) {
+    stop("`depth` must be a single numeric value when `color` is used.",
+         call. = FALSE)
+  }
+  paste0("1:2:3:(", gp_number(width), "):(", gp_number(depth), "):4")
 }
 
 parallel3d_data <- function(z, x = NULL, y = NULL,

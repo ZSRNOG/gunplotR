@@ -104,6 +104,12 @@ stopifnot(identical(names(xyzc), c("x", "y", "z", "color")))
 
 bars <- gunplotR:::bar3d_data(matrix(1:6, nrow = 2L))
 stopifnot(all(c("x", "y", "z") %in% names(bars$data)))
+stopifnot(identical(gunplotR:::bar3d_using_spec(FALSE, 0.8, NULL),
+                    "1:2:3"))
+stopifnot(identical(gunplotR:::bar3d_using_spec(TRUE, 0.8, NULL),
+                    "1:2:3:(0.8):(0.8):4"))
+stopifnot(identical(gunplotR:::bar3d_using_spec(TRUE, 0.8, 0.5),
+                    "1:2:3:(0.8):(0.5):4"))
 
 fences <- gunplotR:::fence_data(matrix(1:6, nrow = 2L))
 stopifnot(all(c("x", "y", "zmin", "zlow", "z", "group") %in% names(fences)))

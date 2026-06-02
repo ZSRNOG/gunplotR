@@ -49,7 +49,9 @@ x, y, and height columns; an optional fourth column is used for color.}
 
 \item{x, y}{Optional x/y positions or category labels for matrix input.}
 
-\item{color}{Optional color values for palette coloring.}
+\item{color}{Optional color values for palette coloring. These values are
+used only for color; bar width and depth are controlled by \code{width} and
+\code{depth}.}
 
 \item{width}{Optional bar width passed to \verb{set boxwidth}.}
 
