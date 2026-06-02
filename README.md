@@ -99,68 +99,43 @@ gp_line(
 
 ## Gallery
 
-The examples below were generated with
-[`inst/examples/deep_gallery.R`](inst/examples/deep_gallery.R). The full image
-set is saved in [`gallery/deep_potential`](gallery/deep_potential).
+The gallery below was generated with
+[`inst/examples/deep_gallery.R`](inst/examples/deep_gallery.R). The images are
+saved in [`gallery/deep_potential`](gallery/deep_potential).
 
-### Layered 2D Plot
+![pm3d landscape](gallery/deep_potential/04_pm3d_landscape_contours.png)
 
-```r
-gp_multi(
-  gp_layer(data = band, using = "1:2:3", style = "filledcurves",
-           title = "95% CI", fill = 0.24, fill_col = "#8ecae6",
-           border = FALSE),
-  gp_layer(data = raw, using = "1:2", style = "points",
-           title = "samples", pch = 7, cex = 0.65),
-  gp_layer(data = line, using = "1:2", style = "lines",
-           title = "cubic fit", col = "#d62828", lwd = 2.4)
-)
-```
-
-![Layered regression](gallery/deep_potential/01_layered_regression_band.png)
-
-### 3D pm3d Surface
+### Compact, R-Style Gnuplot Control
 
 ```r
 gp_surface(
   surf_fun,
   type = "pm3d",
   settings = gp_options(
-    view = c(58, 32),
-    palette = "viridis",
+    view = c(60, 34, 0.88, 1.05),
+    palette = "cubehelix start 0.35 cycles -1 saturation 0.9",
     contour = "base",
     colorbox = TRUE
-  )
+  ),
+  terminal = gp_terminal("pngcairo", width = 1400, height = 860)
 )
 ```
 
-![pm3d surface](gallery/deep_potential/05_pm3d_surface_contour.png)
+| Layered 2D uncertainty | Polar signal plot |
+| --- | --- |
+| ![Layered uncertainty](gallery/deep_potential/01_layered_uncertainty_fit.png) | ![Polar signal](gallery/deep_potential/02_polar_signal_rosette.png) |
 
-### 4D Surface
+| Violin distribution | Waterfall ridgelines |
+| --- | --- |
+| ![Violin distribution](gallery/deep_potential/03_violin_distribution_lab.png) | ![Waterfall ridgelines](gallery/deep_potential/05_waterfall_ridgeline_scans.png) |
 
-```r
-gp_surface4d(
-  z,
-  color,
-  palette = "model HSV defined (0 0 1 1, 1 1 1 1)",
-  cblabel = "phase",
-  view = c(57, 36)
-)
-```
+| 4D surface | 4D helix |
+| --- | --- |
+| ![4D surface](gallery/deep_potential/00_readme_hero_surface4d.png) | ![4D helix](gallery/deep_potential/06_points4d_signal_helix.png) |
 
-![4D surface](gallery/deep_potential/06_surface4d_phase_color.png)
-
-### Fence and Waterfall Plots
-
-![Fence plot](gallery/deep_potential/07_fenceplot_zerrorfill.png)
-
-![Waterfall plot](gallery/deep_potential/08_waterfall_density_scans.png)
-
-### 4D Point Cloud and 3D Bars
-
-![4D helix](gallery/deep_potential/09_points4d_twisted_helix.png)
-
-![3D bars](gallery/deep_potential/10_boxes3d_colored_bars.png)
+| 3D categorical bars |
+| --- |
+| ![3D categorical bars](gallery/deep_potential/07_boxes3d_dashboard_bars.png) |
 
 ## Main Functions
 
