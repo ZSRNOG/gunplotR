@@ -1,0 +1,27 @@
+Package: gunplotR
+Type: Package
+Title: Plot from R with Gunplot or Gnuplot
+Version: 0.1.0
+Authors@R: c(
+    person(given = "Zhou", family = "Shirong", role = c("aut", "cre"), email = "zsrnog@yeah.net")
+    )
+Author: Zhou Shirong
+Maintainer: Zhou Shirong <zsrnog@yeah.net>
+Description: A lightweight wrapper for calling an external Gunplot or
+    Gnuplot executable from R. It can run plotting scripts and provides
+    R-friendly helpers for 2D, 3D, and 4D plots, including surfaces, pm3d
+    maps, palette-colored point clouds, contours, vectors, polygons, voxels,
+    and isosurfaces.
+License: MIT + file LICENSE
+URL: https://github.com/zsrnog/gunplotR
+BugReports: https://github.com/zsrnog/gunplotR/issues
+Encoding: UTF-8
+Depends: R (>= 3.5.0)
+Imports:
+    grDevices,
+    graphics,
+    stats,
+    tools,
+    utils
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.3.3

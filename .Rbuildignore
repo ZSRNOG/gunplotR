@@ -1,0 +1,6 @@
+^\.github$
+^\.Rbuildignore$
+^Gnuplot_6[.]pdf$
+^gallery$
+^gunplotR_.*[.]tar[.]gz$
+^.*[.]Rcheck$
